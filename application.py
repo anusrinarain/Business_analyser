@@ -1323,7 +1323,7 @@ elif selected_page == "Visualisations":
     <div class="page-hero">
         <div class="hero-badge">Analytics</div>
         <h1 class="hero-title">Deep Financial Visualisations</h1>
-        <p class="hero-subtitle">Explore correlations, distributions, trends, and structural breakdowns across your business data.</p>
+        <p class="hero-subtitle">Explore trends, correlations, and distributions across your business data.</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -1338,23 +1338,40 @@ elif selected_page == "Visualisations":
     num_v = df_vis.select_dtypes(include=np.number).columns.tolist()
     cat_v = df_vis.select_dtypes(include='object').columns.tolist()
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "Trends", "Correlations", "Distributions", "Category Analysis", "Advanced"
-    ])
+    id_keywords = ['_id', 'order_id', 'customer_id', 'transaction_id', 'invoice']
+    clean_cat_v = [
+        c for c in cat_v
+        if not any(kw in c.lower() for kw in id_keywords)
+    ]
+
+    tab1, tab2, tab3 = st.tabs(["Trends", "Correlations", "Distributions"])
 
     with tab1:
         if num_v:
-            v1, v2 = st.columns([1,3])
+            v1, v2 = st.columns([1, 3])
             with v1:
-                plot_cols  = st.multiselect("Select Metrics", num_v,
-                                             default=num_v[:min(3,len(num_v))],
-                                             max_selections=6)
-                chart_type = st.radio("Chart Type", ["Line","Area","Bar"])
-                time_col_v = st.selectbox("X-Axis", ["Row Index"] + cat_v + num_v)
+                plot_cols = st.multiselect(
+                    "Select Metrics", num_v,
+                    default=num_v[:min(3, len(num_v))],
+                    max_selections=6,
+                    key="vis_plot_cols"
+                )
+                chart_type = st.radio(
+                    "Chart Type", ["Line", "Area", "Bar"],
+                    key="vis_chart_type"
+                )
+                x_options = ["Row Index"] + clean_cat_v + num_v
+                time_col_v = st.selectbox(
+                    "X-Axis", x_options,
+                    key="vis_x_axis"
+                )
             with v2:
                 if plot_cols:
-                    x_val = (df_vis.index if time_col_v == "Row Index"
-                             else df_vis[time_col_v].astype(str))
+                    x_val = (
+                        df_vis.index
+                        if time_col_v == "Row Index"
+                        else df_vis[time_col_v].astype(str)
+                    )
                     fig_t = go.Figure()
                     for idx2, col2 in enumerate(plot_cols):
                         c2 = PALETTE[idx2 % len(PALETTE)]
@@ -1368,7 +1385,7 @@ elif selected_page == "Visualisations":
                             fig_t.add_trace(go.Scatter(
                                 x=x_val, y=df_vis[col2], name=col2,
                                 fill='tozeroy', line=dict(color=c2, width=2),
-                                fillcolor=c2+'14'
+                                fillcolor=c2 + '14'
                             ))
                         else:
                             fig_t.add_trace(go.Bar(
@@ -1377,17 +1394,25 @@ elif selected_page == "Visualisations":
                             ))
                     apply_layout(fig_t, 440)
                     fig_t.update_layout(
-                        title="Financial Trend Analysis",
-                        legend=dict(bgcolor='rgba(0,0,0,0)', font=dict(color='#7BA3C4'))
+                        title="Trend Analysis",
+                        legend=dict(
+                            bgcolor='rgba(0,0,0,0)',
+                            font=dict(color='#7BA3C4')
+                        )
                     )
                     st.plotly_chart(fig_t, use_container_width=True)
+                else:
+                    st.info("Select at least one metric from the left panel.")
+        else:
+            st.info("No numeric columns found in the dataset.")
 
     with tab2:
         if len(num_v) >= 2:
             corr = df_vis[num_v].corr()
             fig_hm = px.imshow(
-                corr, text_auto=".2f",
-                color_continuous_scale=["#FB7185","#080E1A","#38BDF8"],
+                corr,
+                text_auto=".2f",
+                color_continuous_scale=["#FB7185", "#080E1A", "#38BDF8"],
                 zmin=-1, zmax=1,
                 title="Pearson Correlation Matrix"
             )
@@ -1395,15 +1420,26 @@ elif selected_page == "Visualisations":
             fig_hm.update_traces(textfont=dict(size=10, color='white'))
             st.plotly_chart(fig_hm, use_container_width=True)
 
-            st.markdown('<div class="section-label" style="margin-top:8px;">Scatter Explorer</div>',
-                        unsafe_allow_html=True)
+            st.markdown(
+                '<div class="section-label" style="margin-top:8px;">Scatter Explorer</div>',
+                unsafe_allow_html=True
+            )
             sc1, sc2, sc3 = st.columns(3)
             with sc1:
-                x_sc = st.selectbox("X Axis", num_v, index=0, key="sc_x")
+                x_sc = st.selectbox(
+                    "X Axis", num_v, index=0, key="vis_sc_x"
+                )
             with sc2:
-                y_sc = st.selectbox("Y Axis", num_v, index=min(1,len(num_v)-1), key="sc_y")
+                y_sc = st.selectbox(
+                    "Y Axis", num_v,
+                    index=min(1, len(num_v) - 1),
+                    key="vis_sc_y"
+                )
             with sc3:
-                color_sc = st.selectbox("Colour By", ["None"] + cat_v, key="sc_col")
+                colour_options = ["None"] + clean_cat_v
+                color_sc = st.selectbox(
+                    "Colour By", colour_options, key="vis_sc_col"
+                )
 
             fig_sc2 = px.scatter(
                 df_vis, x=x_sc, y=y_sc,
@@ -1419,29 +1455,36 @@ elif selected_page == "Visualisations":
 
     with tab3:
         if num_v:
-            d1, d2 = st.columns([1,3])
+            d1, d2 = st.columns([1, 3])
             with d1:
-                dist_col = st.selectbox("Select Column", num_v)
-                show_box = st.checkbox("Show box", True)
+                dist_col = st.selectbox(
+                    "Select Column", num_v, key="vis_dist_col"
+                )
+                show_box = st.checkbox(
+                    "Show box plot overlay", True, key="vis_show_box"
+                )
             with d2:
                 fig_dist = px.histogram(
-                    df_vis, x=dist_col, nbins=25,
+                    df_vis, x=dist_col,
+                    nbins=25,
                     marginal="box" if show_box else None,
                     color_discrete_sequence=['#A78BFA'],
-                    title=f"Distribution — {dist_col.replace('_',' ').title()}"
+                    title=f"Distribution — {dist_col.replace('_', ' ').title()}"
                 )
                 fig_dist.update_traces(marker_line_width=0, opacity=0.85)
                 fig_dist.add_vline(
                     x=float(df_vis[dist_col].mean()),
                     line_color='#FBBF24', line_dash='dash', line_width=2,
-                    annotation_text="Mean", annotation_font_color='#FBBF24'
+                    annotation_text="Mean",
+                    annotation_font_color='#FBBF24'
                 )
                 fig_dist.add_vline(
                     x=float(df_vis[dist_col].median()),
                     line_color='#34D399', line_dash='dot', line_width=2,
-                    annotation_text="Median", annotation_font_color='#34D399'
+                    annotation_text="Median",
+                    annotation_font_color='#34D399'
                 )
-                apply_layout(fig_dist, 380)
+                apply_layout(fig_dist, 400)
                 st.plotly_chart(fig_dist, use_container_width=True)
 
             stats = df_vis[dist_col].describe()
@@ -1449,16 +1492,20 @@ elif selected_page == "Visualisations":
             lo    = float(stats['25%']) - 1.5 * iqr
             hi    = float(stats['75%']) + 1.5 * iqr
             n_out = int(((df_vis[dist_col] < lo) | (df_vis[dist_col] > hi)).sum())
+
+            stat_pills = ''.join([
+                f'<div style="background:rgba(56,189,248,0.06);border-radius:8px;padding:8px 14px;">'
+                f'<div style="color:#3D6080;font-size:10px;text-transform:uppercase;'
+                f'letter-spacing:1px;">{k}</div>'
+                f'<div style="color:#38BDF8;font-family:DM Mono;font-size:14px;'
+                f'font-weight:500;">{v:.3f}</div></div>'
+                for k, v in stats.items()
+            ])
             st.markdown(f"""
             <div class="card card-cyan" style="margin-top:8px;">
                 <div class="section-label">Statistical Summary — {dist_col}</div>
                 <div style="display:flex;flex-wrap:wrap;gap:12px;">
-                    {''.join([
-                        f'<div style="background:rgba(56,189,248,0.06);border-radius:8px;padding:8px 14px;">'
-                        f'<div style="color:#3D6080;font-size:10px;text-transform:uppercase;letter-spacing:1px;">{k}</div>'
-                        f'<div style="color:#38BDF8;font-family:DM Mono;font-size:14px;font-weight:500;">{v:.3f}</div></div>'
-                        for k,v in stats.items()
-                    ])}
+                    {stat_pills}
                     <div style="background:rgba(251,113,133,0.06);border-radius:8px;padding:8px 14px;">
                         <div style="color:#3D6080;font-size:10px;text-transform:uppercase;letter-spacing:1px;">IQR Outliers</div>
                         <div style="color:#FB7185;font-family:DM Mono;font-size:14px;font-weight:500;">{n_out}</div>
@@ -1466,105 +1513,8 @@ elif selected_page == "Visualisations":
                 </div>
             </div>
             """, unsafe_allow_html=True)
-
-    with tab4:
-        if cat_v and num_v:
-            ca1, ca2 = st.columns(2)
-            with ca1:
-                grp_col = st.selectbox("Group By (category)", cat_v)
-            with ca2:
-                val_col = st.selectbox("Value Column", num_v)
-
-            agg_choice = st.radio("Aggregation", ["Sum","Mean","Count"], horizontal=True)
-            if agg_choice == "Sum":
-                agg_df = df_vis.groupby(grp_col)[val_col].sum().reset_index()
-            elif agg_choice == "Mean":
-                agg_df = df_vis.groupby(grp_col)[val_col].mean().reset_index()
-            else:
-                agg_df = df_vis.groupby(grp_col)[val_col].count().reset_index()
-            agg_df.columns = ["Category","Value"]
-            agg_df = agg_df.sort_values("Value", ascending=False)
-
-            ch_c1, ch_c2 = st.columns(2)
-            with ch_c1:
-                fig_bar_cat = px.bar(
-                    agg_df, x="Category", y="Value",
-                    color="Category", color_discrete_sequence=PALETTE,
-                    title=f"{agg_choice} of {val_col} by {grp_col}"
-                )
-                apply_layout(fig_bar_cat, 360)
-                fig_bar_cat.update_layout(showlegend=False)
-                st.plotly_chart(fig_bar_cat, use_container_width=True)
-            with ch_c2:
-                fig_pie_cat = go.Figure(go.Pie(
-                    labels=agg_df["Category"], values=agg_df["Value"],
-                    hole=0.5, marker_colors=PALETTE,
-                    textinfo='percent+label',
-                    textfont=dict(size=11, color='white'),
-                ))
-                fig_pie_cat.update_layout(
-                    title=f"{val_col} Share by {grp_col}",
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    font=dict(family='DM Sans', color='#7BA3C4'),
-                    margin=dict(l=10,r=10,t=44,b=10),
-                    height=360, showlegend=False
-                )
-                st.plotly_chart(fig_pie_cat, use_container_width=True)
-
-            if len(cat_v) > 1:
-                st.markdown('<div class="section-label" style="margin-top:8px;">Box Plot by Group</div>',
-                            unsafe_allow_html=True)
-                box_cat = st.selectbox("Category column for box plot", cat_v, key="box_cat")
-                box_val = st.selectbox("Numeric column", num_v, key="box_val")
-                fig_box = px.box(
-                    df_vis, x=box_cat, y=box_val,
-                    color=box_cat, color_discrete_sequence=PALETTE,
-                    title=f"{box_val.replace('_',' ').title()} by {box_cat.replace('_',' ').title()}"
-                )
-                apply_layout(fig_box, 380)
-                fig_box.update_layout(showlegend=False)
-                st.plotly_chart(fig_box, use_container_width=True)
         else:
-            st.info("Need at least one category column and one numeric column.")
-
-    with tab5:
-        st.markdown('<div class="section-label">Multi-Metric Radar</div>', unsafe_allow_html=True)
-        if len(num_v) >= 3:
-            radar_cols = st.multiselect("Select dimensions (3–8)", num_v,
-                                         default=num_v[:min(6,len(num_v))],
-                                         max_selections=8)
-            if len(radar_cols) >= 3:
-                r_df   = df_vis[radar_cols].copy()
-                r_norm = (r_df - r_df.min()) / (r_df.max() - r_df.min() + 1e-9)
-                n_show = min(5, len(r_norm))
-                fig_rad = go.Figure()
-                for i2 in range(n_show):
-                    vals = r_norm.iloc[i2].tolist() + [r_norm.iloc[i2].tolist()[0]]
-                    fig_rad.add_trace(go.Scatterpolar(
-                        r=vals, theta=radar_cols + [radar_cols[0]],
-                        fill='toself', name=f"Record {i2+1}",
-                        line=dict(color=PALETTE[i2 % len(PALETTE)], width=2),
-                        fillcolor='rgba(0,0,0,0)'
-                    ))
-                fig_rad.update_layout(
-                    polar=dict(
-                        bgcolor='rgba(8,14,26,0.8)',
-                        radialaxis=dict(visible=True, range=[0,1],
-                                        tickfont=dict(color='#3D6080',size=9),
-                                        gridcolor='rgba(56,189,248,0.1)'),
-                        angularaxis=dict(tickfont=dict(color='#7BA3C4',size=12),
-                                         gridcolor='rgba(56,189,248,0.1)')
-                    ),
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    title=dict(text="Multi-Metric Radar",
-                               font=dict(family='Syne',size=15,color='#E8F4FD')),
-                    font=dict(family='DM Sans', color='#7BA3C4'),
-                    height=480, margin=dict(l=40,r=40,t=60,b=20),
-                    legend=dict(bgcolor='rgba(0,0,0,0)', font=dict(color='#7BA3C4'))
-                )
-                st.plotly_chart(fig_rad, use_container_width=True)
-            else:
-                st.warning("Select at least 3 dimensions.")
+            st.info("No numeric columns found.")
 
 
 elif selected_page == "AI Insights":
