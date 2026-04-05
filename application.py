@@ -480,12 +480,15 @@ with st.sidebar:
 
     st.markdown('<div class="section-label" style="margin-top:20px;padding:0 8px;">Dataset</div>',
                 unsafe_allow_html=True)
-    uploaded = st.file_uploader("Upload CSV", type=["csv"], label_visibility="collapsed")
+    uploader_key_val = st.session_state.get('uploader_key', 0)
+    uploaded = st.file_uploader("Upload CSV", type=["csv"], label_visibility="collapsed", key=f"uploader_{uploader_key_val}")
     if uploaded:
-        df_up = pd.read_csv(uploaded)
-        st.session_state.df = df_up
-        st.session_state.manual_entries = []
-        st.success(f"Loaded {len(df_up):,} rows")
+        if st.session_state.get('last_uploaded_file') != uploaded.name:
+            df_up = pd.read_csv(uploaded)
+            st.session_state.df = df_up
+            st.session_state.manual_entries = []
+            st.session_state.last_uploaded_file = uploaded.name
+            st.success(f"Loaded {len(df_up):,} rows")
 
     if st.session_state.df is not None:
         df_s = st.session_state.df
