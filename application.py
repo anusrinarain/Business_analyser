@@ -430,14 +430,14 @@ def predict_single(model, scaler, feature_cols: list, input_dict: dict) -> float
     X   = scaler.transform(row.values.astype(float))
     return float(model.predict(X)[0])
 
-_defaults = {
+_defaults: dict = {
     "df": None,
     "manual_entries": lambda: [],
     "model": None,
     "scaler": None,
     "feature_cols": lambda: [],
     "target_col": None,
-    "train_metrics": None,
+    "train_metrics": None,  # Dict tracking r2, rmse, mae, cv_score
     "chat_history": lambda: [],
     "sim_chat_history": lambda: [],
     "last_prediction": None,
