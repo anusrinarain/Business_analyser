@@ -778,16 +778,6 @@ elif selected_page == "Data Entry":
     tab1, tab2 = st.tabs(["Manual Entry Form", "Dataset Viewer"])
 
     with tab1:
-        st.markdown("""
-        <div class="card card-cyan" style="margin-bottom:20px;">
-            <div style="color:#E8F4FD;font-weight:600;font-size:14px;margin-bottom:8px;">Monthly business metrics form</div>
-            <div style="color:#7BA3C4;font-size:13px;line-height:1.7;">
-                Fields marked * are required. All monetary values in INR.
-                Gross Profit, Net Profit, and Margins are calculated automatically.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
         with st.form("manual_entry_form", clear_on_submit=True):
             st.markdown('<div class="section-label">Period and Revenue</div>', unsafe_allow_html=True)
             f1, f2, f3 = st.columns(3)
