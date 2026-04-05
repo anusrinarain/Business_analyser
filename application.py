@@ -880,6 +880,8 @@ elif selected_page == "Data Entry":
                 if st.button("Clear all entries", use_container_width=True):
                     st.session_state.manual_entries = []
                     st.session_state.df = None
+                    st.session_state.last_uploaded_file = None
+                    st.session_state['uploader_key'] = st.session_state.get('uploader_key', 0) + 1
                     st.rerun()
 
     with tab2:
