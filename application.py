@@ -442,6 +442,8 @@ _defaults = {
     "sim_chat_history": lambda: [],
     "last_prediction": None,
     "last_sim_results": None,
+    "last_uploaded_file": None,
+    "uploader_key": 0,
 }
 for k, v in _defaults.items():
     if k not in st.session_state:
