@@ -432,20 +432,20 @@ def predict_single(model, scaler, feature_cols: list, input_dict: dict) -> float
 
 _defaults = {
     "df": None,
-    "manual_entries": [],
+    "manual_entries": lambda: [],
     "model": None,
     "scaler": None,
-    "feature_cols": [],
+    "feature_cols": lambda: [],
     "target_col": None,
     "train_metrics": None,
-    "chat_history": [],
-    "sim_chat_history": [],
+    "chat_history": lambda: [],
+    "sim_chat_history": lambda: [],
     "last_prediction": None,
     "last_sim_results": None,
 }
 for k, v in _defaults.items():
     if k not in st.session_state:
-        st.session_state[k] = v
+        st.session_state[k] = v() if callable(v) else v
 
 with st.sidebar:
     st.markdown("""
