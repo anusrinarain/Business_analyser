@@ -437,7 +437,7 @@ _defaults: dict = {
     "scaler": None,
     "feature_cols": lambda: [],
     "target_col": None,
-    "train_metrics": None,  # Dict tracking r2, rmse, mae, cv_score
+    "train_metrics": None,
     "chat_history": lambda: [],
     "sim_chat_history": lambda: [],
     "last_prediction": None,
@@ -1093,16 +1093,6 @@ elif selected_page == "Simulation Lab":
     default_cogs = float(df_sim[cogs_col_s].mean()) if cogs_col_s else default_rev * 0.4
     default_opex = float(df_sim[opex_col_s].mean()) if opex_col_s else default_rev * 0.25
 
-    st.markdown("""
-    <div class="card card-amber" style="margin-bottom:20px;">
-        <div style="color:#FBBF24;font-weight:700;font-size:14px;margin-bottom:8px;">Scenario Configuration</div>
-        <div style="color:#7BA3C4;font-size:13px;line-height:1.7;">
-            Set your base financials and apply percentage changes to model three futures.
-            The Risk Score uses cost ratio and margin to reflect financial vulnerability.
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
     sc1, sc2, sc3 = st.columns(3)
     with sc1:
         base_rev  = st.number_input("Base Monthly Revenue (INR)", min_value=0.0,
@@ -1557,15 +1547,6 @@ elif selected_page == "AI Insights":
     full_ctx = f"{data_ctx} | {model_ctx} | {pred_ctx} | {sim_ctx}"
 
     st.markdown('<div class="section-label">Generate Full Business Report</div>', unsafe_allow_html=True)
-    st.markdown("""
-    <div class="card card-violet" style="margin-bottom:16px;">
-        <div style="color:#A78BFA;font-weight:600;font-size:14px;margin-bottom:6px;">Executive Report</div>
-        <div style="color:#7BA3C4;font-size:13px;line-height:1.7;">
-            Generates a comprehensive business analysis — financials, performance, risks, and
-            recommendations — written in plain English for any non-technical audience.
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
 
     if st.button("Generate Full Analysis Report", type="primary", use_container_width=True):
         if df_ai is None and not st.session_state.train_metrics:
