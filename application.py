@@ -488,6 +488,14 @@ with st.sidebar:
             st.session_state.df = df_up
             st.session_state.manual_entries = []
             st.session_state.last_uploaded_file = uploaded.name
+            st.session_state.model = None
+            st.session_state.scaler = None
+            st.session_state.train_metrics = None
+            st.session_state.feature_cols = []
+            st.session_state.chat_history = []
+            st.session_state.sim_chat_history = []
+            st.session_state.last_prediction = None
+            st.session_state.last_sim_results = None
             st.success(f"Loaded {len(df_up):,} rows")
 
     if st.session_state.df is not None:
@@ -882,6 +890,14 @@ elif selected_page == "Data Entry":
                     st.session_state.df = None
                     st.session_state.last_uploaded_file = None
                     st.session_state['uploader_key'] = st.session_state.get('uploader_key', 0) + 1
+                    st.session_state.model = None
+                    st.session_state.scaler = None
+                    st.session_state.train_metrics = None
+                    st.session_state.feature_cols = []
+                    st.session_state.chat_history = []
+                    st.session_state.sim_chat_history = []
+                    st.session_state.last_prediction = None
+                    st.session_state.last_sim_results = None
                     st.rerun()
 
     with tab2:
