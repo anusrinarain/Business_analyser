@@ -950,16 +950,6 @@ elif selected_page == "Predictions":
 
     non_id_num = [c for c in num_cols_p if classify_col(c) not in ('id',)]
 
-    st.markdown("""
-    <div class="card card-violet" style="margin-bottom:20px;">
-        <div style="color:#A78BFA;font-weight:700;font-size:14px;margin-bottom:10px;">Step 1: Configure and Train Model</div>
-        <div style="color:#7BA3C4;font-size:13px;line-height:1.7;">
-            Select what you want to predict (target) and which features to use as input.
-            The model learns statistical patterns between your features and the target variable.
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
     col_a, col_b = st.columns(2)
     with col_a:
         default_idx = 0
@@ -1006,13 +996,6 @@ elif selected_page == "Predictions":
     st.markdown("---")
 
     if st.session_state.model is not None:
-        st.markdown("""
-        <div class="card card-cyan">
-            <div style="color:#38BDF8;font-weight:700;font-size:14px;margin-bottom:8px;">Step 2: Set Input Values and Predict</div>
-            <div style="color:#7BA3C4;font-size:13px;">Adjust the sliders to represent your next scenario. The model will predict the target variable.</div>
-        </div>
-        """, unsafe_allow_html=True)
-
         feat_inputs = {}
         fc = st.session_state.feature_cols
 
