@@ -869,6 +869,8 @@ elif selected_page == "Data Entry":
                 }
                 st.session_state.manual_entries.append(entry)
                 st.session_state.df = pd.DataFrame(st.session_state.manual_entries)
+                st.session_state.model = None
+                st.session_state.train_metrics = None
                 st.success(f"Entry for {month_label} added. Net Profit: INR {net_profit:,.0f} ({net_margin:.1f}% margin)")
                 st.rerun()
 
